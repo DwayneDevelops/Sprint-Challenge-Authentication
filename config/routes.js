@@ -10,16 +10,16 @@ module.exports = server => {
 };
 
 function register(req, res) {
-  const user = req.body;
-  user.password = bcrypt.hashSync(user.password, 8);
+  let user = req.body;
+  const hash = bcrypt.hashSync(user.password, 8);
+  user.password = hash;
 
   usersDb.add(user)
-  .then(user => {
-    const token = generateToken(user);
-    return res.status(201).json({ user, token });
+  .then(saved => {
+    return res.status(201).json(saved);
   })
   .catch(err => {
-    res.status(500).json({ error: `${err}`});
+    res.status(500).json(`${err}`);
   });
 }
 
@@ -33,7 +33,8 @@ function login(req, res) {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
-        res.status(200).json({ message: `Welcome to the party ${user.username}`, token });
+        const token = tokenService.generateToken(user);
+        res.status(200).json({ message: `Welcome to the party ${user.username}, take this token...`, token });
       } else {
         res.status(401).json({ message: 'Invalid Credentials' });
       }
