@@ -16,6 +16,7 @@ function register(req, res) {
 
   usersDb.add(user)
   .then(saved => {
+    const token = generateToken(user);
     return res.status(201).json(saved);
   })
   .catch(err => {
@@ -33,14 +34,14 @@ function login(req, res) {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
-        const token = tokenService.generateToken(user);
+        const token = generateToken(user);
         res.status(200).json({ message: `Welcome to the party ${user.username}, take this token...`, token });
       } else {
         res.status(401).json({ message: 'Invalid Credentials' });
       }
     })
     .catch(err => {
-      res.status(500).json({ error: `Server failed to get the user: ${err}` });
+      res.status(500).json(`${err}`);
     });
   }
 }
